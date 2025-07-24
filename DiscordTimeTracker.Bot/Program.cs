@@ -12,9 +12,12 @@ internal class Program
 {
     private static async Task Main(string[] args)
     {
-        var token = "YOUR_TOKEN_HERE";
-        var connectionString = "mongodb://admin:admin123@localhost:27017/?authSource=admin";
-        var databaseName = "time_tracker";
+        
+        
+        DotNetEnv.Env.Load();
+        var token = Environment.GetEnvironmentVariable("DISCORD_TOKEN");
+        var connectionString = Environment.GetEnvironmentVariable("MONGO_CONNECTION_STRING") ?? "";
+        var databaseName = Environment.GetEnvironmentVariable("MONGO_DATABASE_NAME") ?? "";
         var services = new ServiceCollection();
         services.AddSingleton<ITimeEntryRepository>(provider =>
         {
@@ -103,20 +106,21 @@ internal class Program
                         await command.RespondAsync($":pencil: Manual entry added.", ephemeral: true);
                         break;
 
-                        /*case "entries":
-                            var entriesCase = provider.GetRequiredService<GetEntriesOfTodayUseCase>();
-                            var entries = await entriesCase.ExecuteAsync(userId, guildId);
+                        case "entries":
+                        await command.RespondAsync("Not implemented yet", ephemeral: true);
+                        /*var entriesCase = provider.GetRequiredService<GetEntriesOfTodayUseCase>();
+                        var entries = await entriesCase.ExecuteAsync(userId, guildId);
 
-                            if (entries.Count == 0)
-                            {
-                                await command.RespondAsync(":calendar: No entries found for today.", ephemeral: true);
-                            }
-                            else
-                            {
-                                var formatted = string.Join("\n", entries.Select(e => $"• `{e.Timestamp:HH:mm}` - {e.Type}"));
-                                await command.RespondAsync($":calendar: Entries for today:\n{formatted}", ephemeral: true);
-                            }
-                            break;*/
+                        if (entries.Count == 0)
+                        {
+                            await command.RespondAsync(":calendar: No entries found for today.", ephemeral: true);
+                        }
+                        else
+                        {
+                            var formatted = string.Join("\n", entries.Select(e => $"• `{e.Timestamp:HH:mm}` - {e.Type}"));
+                            await command.RespondAsync($":calendar: Entries for today:\n{formatted}", ephemeral: true);
+                        }*/
+                        break;
                 }
             }
             catch (Exception ex)
