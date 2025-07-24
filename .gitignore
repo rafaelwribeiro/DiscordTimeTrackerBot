@@ -22,7 +22,7 @@ bld/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
-buid/
+build/
 .vs/
 
 # .NET Core
