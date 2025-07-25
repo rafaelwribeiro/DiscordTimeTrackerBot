@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiscordTimeTracker.Infrastr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiscordTimeTracker.Bot", "DiscordTimeTracker.Bot\DiscordTimeTracker.Bot.csproj", "{C6508FAD-D3E0-4E24-AABF-905A75817BB8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiscordTimeTracker.Console", "DiscordTimeTracker.Console\DiscordTimeTracker.Console.csproj", "{D7FC23C1-7BB7-4E36-A267-C1DE1F075E3F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +71,18 @@ Global
 		{C6508FAD-D3E0-4E24-AABF-905A75817BB8}.Release|x64.Build.0 = Release|Any CPU
 		{C6508FAD-D3E0-4E24-AABF-905A75817BB8}.Release|x86.ActiveCfg = Release|Any CPU
 		{C6508FAD-D3E0-4E24-AABF-905A75817BB8}.Release|x86.Build.0 = Release|Any CPU
+		{D7FC23C1-7BB7-4E36-A267-C1DE1F075E3F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D7FC23C1-7BB7-4E36-A267-C1DE1F075E3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D7FC23C1-7BB7-4E36-A267-C1DE1F075E3F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D7FC23C1-7BB7-4E36-A267-C1DE1F075E3F}.Debug|x64.Build.0 = Debug|Any CPU
+		{D7FC23C1-7BB7-4E36-A267-C1DE1F075E3F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D7FC23C1-7BB7-4E36-A267-C1DE1F075E3F}.Debug|x86.Build.0 = Debug|Any CPU
+		{D7FC23C1-7BB7-4E36-A267-C1DE1F075E3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D7FC23C1-7BB7-4E36-A267-C1DE1F075E3F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D7FC23C1-7BB7-4E36-A267-C1DE1F075E3F}.Release|x64.ActiveCfg = Release|Any CPU
+		{D7FC23C1-7BB7-4E36-A267-C1DE1F075E3F}.Release|x64.Build.0 = Release|Any CPU
+		{D7FC23C1-7BB7-4E36-A267-C1DE1F075E3F}.Release|x86.ActiveCfg = Release|Any CPU
+		{D7FC23C1-7BB7-4E36-A267-C1DE1F075E3F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

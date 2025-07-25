@@ -81,13 +81,13 @@ internal class Program
                 {
                     case "clockin":
                         var clockIn = provider.GetRequiredService<ClockInUseCase>();
-                        await clockIn.ExecuteAsync(new ClockInRequest(userId, guildId, userName));
+                        await clockIn.ExecuteAsync(new ClockInRequest(guildId, userId, userName));
                         await command.RespondAsync($":white_check_mark: Clock-in registered for {userName}", ephemeral: true);
                         break;
 
                     case "clockout":
                         var clockOut = provider.GetRequiredService<ClockOutUseCase>();
-                        await clockOut.ExecuteAsync(new ClockOutRequest(userId, guildId, userName));
+                        await clockOut.ExecuteAsync(new ClockOutRequest(guildId, userId, userName));
                         await command.RespondAsync($":white_check_mark: Clock-out registered for {userName}", ephemeral: true);
                         break;
 
@@ -103,7 +103,7 @@ internal class Program
 
                         var type = typeStr?.ToLower() == "clockin" ? TimeEntryType.ClockIn : TimeEntryType.ClockOut;
                         var manual = provider.GetRequiredService<ManualEntryUseCase>();
-                        await manual.ExecuteAsync(new ManualEntryRequest(userId, guildId, userName, parsedTime, type));
+                        await manual.ExecuteAsync(new ManualEntryRequest(guildId, userId, userName, parsedTime, type));
                         await command.RespondAsync($":pencil: Manual entry added.", ephemeral: true);
                         break;
 
