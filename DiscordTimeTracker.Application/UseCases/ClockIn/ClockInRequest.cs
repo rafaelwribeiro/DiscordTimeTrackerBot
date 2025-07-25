@@ -2,11 +2,11 @@
 
 public class ClockInRequest
 {
-    public ulong GuildId { get; }
-    public ulong UserId { get; }
+    public string GuildId { get; }
+    public string UserId { get; }
     public string UserName { get; }
 
-    public ClockInRequest(ulong guildId, ulong userId, string userName)
+    public ClockInRequest(string guildId, string userId, string userName)
     {
         GuildId = guildId;
         UserId = userId;

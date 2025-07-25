@@ -6,5 +6,7 @@ public interface ITimeEntryRepository
 {
     Task AddAsync(TimeEntry entry);
 
-    Task<List<TimeEntry>> GetByUserAsync(ulong guildId, ulong userId, DateTime? from = null, DateTime? to = null);
+    Task<List<TimeEntry>> GetByUserAsync(string guildId, string userId, DateTime? from = null, DateTime? to = null);
+    Task<IReadOnlyList<TimeEntry>> GetEntriesByUserAndGuildAndDateRangeAsync(string guildId, string userId, DateTime start, DateTime end);
+
 }

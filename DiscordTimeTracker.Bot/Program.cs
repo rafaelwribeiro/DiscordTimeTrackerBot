@@ -7,6 +7,7 @@ using DiscordTimeTracker.Application.UseCases.ClockIn;
 using DiscordTimeTracker.Application.UseCases.ClockOut;
 using DiscordTimeTracker.Application.UseCases.ManualEntry;
 using DiscordTimeTracker.Infrastructure.Mongo;
+using DiscordTimeTracker.Application.UseCases.GetEntriesOfToday;
 
 internal class Program
 {
@@ -26,7 +27,7 @@ internal class Program
         services.AddTransient<ClockInUseCase>();
         services.AddTransient<ClockOutUseCase>();
         services.AddTransient<ManualEntryUseCase>();
-        //services.AddTransient<GetEntriesOfTodayUseCase>();
+        services.AddTransient<GetEntriesOfTodayUseCase>();
         services.AddSingleton<DiscordSocketClient>();
 
         var provider = services.BuildServiceProvider();
@@ -72,15 +73,15 @@ internal class Program
         {
             try
             {
-                var userId = command.User.Id;
-                var guildId = command.GuildId ?? 0;
+                var userId = command.User.Id.ToString();
+                var guildId = (command.GuildId ?? 0).ToString();
                 var userName = command.User.Username;
 
                 switch (command.CommandName)
                 {
                     case "clockin":
                         var clockIn = provider.GetRequiredService<ClockInUseCase>();
-                        //await clockIn.ExecuteAsync(new ClockInRequest(userId, guildId, userName));
+                        await clockIn.ExecuteAsync(new ClockInRequest(userId, guildId, userName));
                         await command.RespondAsync($":white_check_mark: Clock-in registered for {userName}", ephemeral: true);
                         break;
 
@@ -106,21 +107,24 @@ internal class Program
                         await command.RespondAsync($":pencil: Manual entry added.", ephemeral: true);
                         break;
 
-                        case "entries":
-                        await command.RespondAsync("Not implemented yet", ephemeral: true);
-                        /*var entriesCase = provider.GetRequiredService<GetEntriesOfTodayUseCase>();
-                        var entries = await entriesCase.ExecuteAsync(userId, guildId);
+                    case "entries":
+                        //await command.RespondAsync($":angry: O {userName} é um merda.", ephemeral: true);
+                        //break;
+                        await command.DeferAsync(ephemeral: true);
+                        var entriesUseCase = provider.GetRequiredService<GetEntriesOfTodayUseCase>();
+                        var entries = await entriesUseCase.ExecuteAsync(new GetEntriesOfTodayRequest(guildId, userId));
 
                         if (entries.Count == 0)
                         {
-                            await command.RespondAsync(":calendar: No entries found for today.", ephemeral: true);
+                            await command.FollowupAsync(":calendar: No entries found for today.", ephemeral: true);
                         }
                         else
                         {
                             var formatted = string.Join("\n", entries.Select(e => $"• `{e.Timestamp:HH:mm}` - {e.Type}"));
-                            await command.RespondAsync($":calendar: Entries for today:\n{formatted}", ephemeral: true);
-                        }*/
+                            await command.FollowupAsync($":calendar: Entries for today:\n{formatted}", ephemeral: true);
+                        }
                         break;
+
                 }
             }
             catch (Exception ex)

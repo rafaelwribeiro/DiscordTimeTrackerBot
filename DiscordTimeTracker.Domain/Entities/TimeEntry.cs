@@ -6,9 +6,9 @@ public class TimeEntry
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();
 
-    public ulong GuildId { get; set; }
+    public string GuildId { get; set; } = string.Empty;
 
-    public ulong UserId { get; set; }
+    public string UserId { get; set; } = string.Empty;
 
     public string UserName { get; set; } = string.Empty;
 

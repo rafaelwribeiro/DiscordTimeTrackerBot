@@ -22,7 +22,7 @@ public class MongoTimeEntryRepository : ITimeEntryRepository
         await _collection.InsertOneAsync(entry);
     }
 
-    public async Task<List<TimeEntry>> GetByUserAsync(ulong guildId, ulong userId, DateTime? from = null, DateTime? to = null)
+    public async Task<List<TimeEntry>> GetByUserAsync(string guildId, string userId, DateTime? from = null, DateTime? to = null)
     {
         var builder = Builders<TimeEntry>.Filter;
         var filter = builder.Eq(x => x.GuildId, guildId) & builder.Eq(x => x.UserId, userId);
@@ -46,4 +46,18 @@ public class MongoTimeEntryRepository : ITimeEntryRepository
         var indexModel = new CreateIndexModel<TimeEntry>(indexKeys);
         collection.Indexes.CreateOne(indexModel);
     }
+
+    public async Task<IReadOnlyList<TimeEntry>> GetEntriesByUserAndGuildAndDateRangeAsync(string guildId, string userId, DateTime start, DateTime end)
+    {
+        var result = await _collection
+        .Find(x => x.GuildId == guildId
+                   && x.UserId == userId
+                   && x.Timestamp >= start
+                   && x.Timestamp <= end)
+        .ToListAsync();
+
+        return result;
+    }
+
+
 }

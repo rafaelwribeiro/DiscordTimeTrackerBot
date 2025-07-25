@@ -24,6 +24,8 @@ bld/
 [Ll]ogs/
 build/
 .vs/
+img/
+anotacoes/
 
 # .NET Core
 project.lock.json
