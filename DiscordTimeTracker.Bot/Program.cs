@@ -13,8 +13,6 @@ internal class Program
 {
     private static async Task Main(string[] args)
     {
-        
-        
         DotNetEnv.Env.Load();
         var token = Environment.GetEnvironmentVariable("DISCORD_TOKEN");
         var connectionString = Environment.GetEnvironmentVariable("MONGO_CONNECTION_STRING") ?? "";
@@ -81,14 +79,14 @@ internal class Program
                 {
                     case "clockin":
                         var clockIn = provider.GetRequiredService<ClockInUseCase>();
-                        await clockIn.ExecuteAsync(new ClockInRequest(guildId, userId, userName));
-                        await command.RespondAsync($":white_check_mark: Clock-in registered for {userName}", ephemeral: true);
+                        var clockInRes = await clockIn.ExecuteAsync(new ClockInRequest(guildId, userId, userName));
+                        await command.RespondAsync(clockInRes.Value?.Message ?? clockInRes.Error, ephemeral: true);
                         break;
 
                     case "clockout":
                         var clockOut = provider.GetRequiredService<ClockOutUseCase>();
-                        await clockOut.ExecuteAsync(new ClockOutRequest(guildId, userId, userName));
-                        await command.RespondAsync($":white_check_mark: Clock-out registered for {userName}", ephemeral: true);
+                        var clockOutRes = await clockOut.ExecuteAsync(new ClockOutRequest(guildId, userId, userName));
+                        await command.RespondAsync(clockOutRes.Value?.Message ?? clockOutRes.Error, ephemeral: true);
                         break;
 
                     case "manualentry":
@@ -103,26 +101,16 @@ internal class Program
 
                         var type = typeStr?.ToLower() == "clockin" ? TimeEntryType.ClockIn : TimeEntryType.ClockOut;
                         var manual = provider.GetRequiredService<ManualEntryUseCase>();
-                        await manual.ExecuteAsync(new ManualEntryRequest(guildId, userId, userName, parsedTime, type));
-                        await command.RespondAsync($":pencil: Manual entry added.", ephemeral: true);
+                        var manualEntryRes = await manual.ExecuteAsync(new ManualEntryRequest(guildId, userId, userName, parsedTime, type));
+                        await command.RespondAsync(manualEntryRes.Value?.Message ?? manualEntryRes.Error, ephemeral: true);                        
                         break;
 
                     case "entries":
-                        //await command.RespondAsync($":angry: O {userName} é um merda.", ephemeral: true);
-                        //break;
                         await command.DeferAsync(ephemeral: true);
                         var entriesUseCase = provider.GetRequiredService<GetEntriesOfTodayUseCase>();
-                        var entries = await entriesUseCase.ExecuteAsync(new GetEntriesOfTodayRequest(guildId, userId));
+                        var entriesRes = await entriesUseCase.ExecuteAsync(new GetEntriesOfTodayRequest(guildId, userId));
 
-                        if (entries.Count == 0)
-                        {
-                            await command.FollowupAsync(":calendar: No entries found for today.", ephemeral: true);
-                        }
-                        else
-                        {
-                            var formatted = string.Join("\n", entries.Select(e => $"• `{e.Timestamp:HH:mm}` - {e.Type}"));
-                            await command.FollowupAsync($":calendar: Entries for today:\n{formatted}", ephemeral: true);
-                        }
+                        await command.FollowupAsync(entriesRes.Value?.Message ?? entriesRes.Error, ephemeral: true);
                         break;
 
                 }

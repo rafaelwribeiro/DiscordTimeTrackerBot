@@ -1,6 +1,5 @@
-﻿using DiscordTimeTracker.Application.UseCases.ClockOut;
+﻿using DiscordTimeTracker.Application.Common;
 using DiscordTimeTracker.Domain.Entities;
-using DiscordTimeTracker.Domain.Enums;
 using DiscordTimeTracker.Domain.Repositories;
 
 namespace DiscordTimeTracker.Application.UseCases.GetEntriesOfToday;
@@ -14,7 +13,7 @@ public class GetEntriesOfTodayUseCase
         _repository = repository;
     }
 
-    public async Task<IReadOnlyList<TimeEntry>> ExecuteAsync(GetEntriesOfTodayRequest request)
+    public async Task<Result<GetEntriesOfTodayResponse>> ExecuteAsync(GetEntriesOfTodayRequest request)
     {
         var utcNow = DateTime.UtcNow.Date;
         var startOfDay = utcNow;                   // 00:00:00 UTC hoje
@@ -26,6 +25,17 @@ public class GetEntriesOfTodayUseCase
             startOfDay,
             endOfDay);
 
-        return entries;
+        if(entries?.Count == 0)
+            return Result<GetEntriesOfTodayResponse>.Fail(":calendar: No entries found for today.");
+
+        var message = ":calendar: No entries found for today.";
+
+        if (entries?.Count > 0)
+        {
+            var formatted = string.Join("\n", entries.Select(e => $"• `{e.Timestamp:HH:mm}` - {e.Type}"));
+            message =  $":calendar: Entries for today:\n{formatted}";
+        }
+
+        return Result<GetEntriesOfTodayResponse>.Ok(new GetEntriesOfTodayResponse(message));
     }
 }
