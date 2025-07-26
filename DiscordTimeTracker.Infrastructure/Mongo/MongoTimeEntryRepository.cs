@@ -77,4 +77,19 @@ public class MongoTimeEntryRepository : ITimeEntryRepository
 
         return result;
     }
+
+    public async Task<List<TimeEntry>> GetEntriesByUserAndGuildAndMonthAsync(string guildId, string userId, int year, int month)
+    {
+        var start = new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var end = start.AddMonths(1).AddTicks(-1);
+
+        var filter = Builders<TimeEntry>.Filter.And(
+            Builders<TimeEntry>.Filter.Eq(e => e.GuildId, guildId),
+            Builders<TimeEntry>.Filter.Eq(e => e.UserId, userId),
+            Builders<TimeEntry>.Filter.Gte(e => e.Timestamp, start),
+            Builders<TimeEntry>.Filter.Lte(e => e.Timestamp, end)
+        );
+
+        return await _collection.Find(filter).ToListAsync();
+    }
 }
