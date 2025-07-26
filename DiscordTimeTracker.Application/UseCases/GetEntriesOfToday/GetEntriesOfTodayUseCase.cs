@@ -1,4 +1,6 @@
-﻿using DiscordTimeTracker.Domain.Entities;
+﻿using DiscordTimeTracker.Application.UseCases.ClockOut;
+using DiscordTimeTracker.Domain.Entities;
+using DiscordTimeTracker.Domain.Enums;
 using DiscordTimeTracker.Domain.Repositories;
 
 namespace DiscordTimeTracker.Application.UseCases.GetEntriesOfToday;

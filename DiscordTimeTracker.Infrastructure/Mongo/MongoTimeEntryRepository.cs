@@ -49,6 +49,8 @@ public class MongoTimeEntryRepository : ITimeEntryRepository
 
     public async Task<IReadOnlyList<TimeEntry>> GetEntriesByUserAndGuildAndDateRangeAsync(string guildId, string userId, DateTime start, DateTime end)
     {
+        Console.WriteLine($"Start: {start:O}");
+        Console.WriteLine($"End: {end:O}");
         var result = await _collection
         .Find(x => x.GuildId == guildId
                    && x.UserId == userId
@@ -59,5 +61,20 @@ public class MongoTimeEntryRepository : ITimeEntryRepository
         return result;
     }
 
+    public async Task<TimeEntry?> GetLastEntryByUserAsync(string guildId, string userId)
+    {
+        var filter = Builders<TimeEntry>.Filter.And(
+            Builders<TimeEntry>.Filter.Eq(x => x.GuildId, guildId),
+            Builders<TimeEntry>.Filter.Eq(x => x.UserId, userId)
+        );
 
+        var sort = Builders<TimeEntry>.Sort.Descending(x => x.Timestamp);
+
+        var result = await _collection.Find(filter)
+                                      .Sort(sort)
+                                      .Limit(1)
+                                      .FirstOrDefaultAsync();
+
+        return result;
+    }
 }

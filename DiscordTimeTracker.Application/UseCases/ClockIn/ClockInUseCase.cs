@@ -15,6 +15,10 @@ public class ClockInUseCase
 
     public async Task<ClockInResponse> ExecuteAsync(ClockInRequest request)
     {
+        var lastEntry = await _repository.GetLastEntryByUserAsync(request.GuildId, request.UserId);
+        if(lastEntry?.Type == TimeEntryType.ClockIn)
+            return new ClockInResponse($":head_shaking_horizontally: You are already In");
+
         var entry = new TimeEntry
         {
             GuildId = request.GuildId,
