@@ -1,4 +1,5 @@
 ﻿using DiscordTimeTracker.Application.Common;
+using DiscordTimeTracker.Application.Validators;
 using DiscordTimeTracker.Domain.Entities;
 using DiscordTimeTracker.Domain.Enums;
 using DiscordTimeTracker.Domain.Repositories;
@@ -17,7 +18,7 @@ public class ClockInUseCase
     public async Task<Result<ClockInResponse>> ExecuteAsync(ClockInRequest request)
     {
         var lastEntry = await _repository.GetLastEntryByUserAsync(request.GuildId, request.UserId);
-        if (lastEntry?.Type == TimeEntryType.ClockIn)
+        if (!TimeEntryValidator.CanClockIn(lastEntry))
             return Result<ClockInResponse>.Fail(":head_shaking_horizontally: You are already clocked in.");
 
         var entry = new TimeEntry

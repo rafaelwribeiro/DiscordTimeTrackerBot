@@ -1,4 +1,8 @@
-﻿using DiscordTimeTracker.Domain.Entities;
+﻿using DiscordTimeTracker.Application.UseCases.ClockIn;
+using DiscordTimeTracker.Application.UseCases.ClockOut;
+using DiscordTimeTracker.Application.UseCases.GetEntriesOfToday;
+using DiscordTimeTracker.Application.UseCases.ManualEntry;
+using DiscordTimeTracker.Domain.Entities;
 using DiscordTimeTracker.Domain.Enums;
 using DiscordTimeTracker.Infrastructure.Mongo;
 using DotNetEnv;
@@ -27,27 +31,27 @@ static class Program
 
         _repo = new MongoTimeEntryRepository(connectionString, databaseName);
 
-        Console.WriteLine("Bem-vindo ao Madruga Time Tracker Console");
+        Console.WriteLine("Welcome to Madruga Time Tracker Console");
 
         while (true)
         {
-            Console.WriteLine("\nSelecione uma opção:");
+            Console.WriteLine("\nSelect an option:");
             Console.WriteLine("1 - Clock In");
             Console.WriteLine("2 - Clock Out");
-            Console.WriteLine("3 - Entrada Manual");
-            Console.WriteLine("4 - Listar Entradas");
-            Console.WriteLine("0 - Sair");
+            Console.WriteLine("3 - Manual Entry");
+            Console.WriteLine("4 - List Entries");
+            Console.WriteLine("0 - Exit");
 
-            Console.Write("Opção: ");
+            Console.Write("Option: ");
             var input = Console.ReadLine();
 
             switch (input)
             {
                 case "1":
-                    await Clock(TimeEntryType.ClockIn);
+                    await ClockIn();
                     break;
                 case "2":
-                    await Clock(TimeEntryType.ClockOut);
+                    await ClockOut();
                     break;
                 case "3":
                     await ManualEntry();
@@ -64,64 +68,91 @@ static class Program
         }
     }
 
-    private static async Task Clock(TimeEntryType type)
+    private static async Task ClockIn()
     {
-        var entry = CreateBasicEntry();
-        entry.Type = type;
-        await _repo.AddAsync(entry);
-        Console.WriteLine($"{type} registrado em {entry.Timestamp:HH:mm:ss}");
+        var request = new ClockInRequest(_guildId, _userId, _userName);
+        var useCase = new ClockInUseCase(_repo);
+
+        var result = await useCase.ExecuteAsync(request);
+
+        if (result.IsFailure)
+        {
+            Console.WriteLine($"❌ {result.Error}");
+            return;
+        }
+
+        Console.WriteLine($"✅ {result.Value.Message}");
+    }
+
+    private static async Task ClockOut()
+    {
+        var request = new ClockOutRequest(_guildId, _userId, _userName);
+        var useCase = new ClockOutUseCase(_repo);
+
+        var result = await useCase.ExecuteAsync(request);
+
+        if (result.IsFailure)
+        {
+            Console.WriteLine($"❌ {result.Error}");
+            return;
+        }
+
+        Console.WriteLine($"✅ {result.Value.Message}");
     }
 
     private static async Task ManualEntry()
     {
-        var entry = CreateBasicEntry();
-
-        Console.Write("Digite o tipo (0 - ClockIn, 1 - ClockOut): ");
+        Console.Write("Enter type (0 - ClockIn, 1 - ClockOut): ");
         var typeStr = Console.ReadLine();
 
         if (!Enum.TryParse<TimeEntryType>(typeStr, out var type))
         {
-            Console.WriteLine("Tipo inválido.");
+            Console.WriteLine("Invalid type.");
             return;
         }
 
-        Console.Write("Digite a data e hora (yyyy-MM-dd HH:mm:ss): ");
+        Console.Write("Enter timestamp (yyyy-MM-dd HH:mm:ss): ");
         var timestampStr = Console.ReadLine();
 
         if (!DateTime.TryParseExact(timestampStr, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var timestamp))
         {
-            Console.WriteLine("Data/hora inválida.");
+            Console.WriteLine("Invalid timestamp format.");
             return;
         }
 
-        entry.Type = type;
-        entry.Timestamp = timestamp.ToUniversalTime();
+        var useCase = new ManualEntryUseCase(_repo);
+        var request = new ManualEntryRequest(
+            guildId: _guildId,
+            userId: _userId,
+            userName: _userName,
+            timestamp: timestamp.ToUniversalTime(),
+            type: type            
+        );
 
-        await _repo.AddAsync(entry);
-        Console.WriteLine("Entrada manual registrada.");
+        var result = await useCase.ExecuteAsync(request);
+
+        if (result.IsFailure)
+        {
+            Console.WriteLine($"❌ {result.Error}");
+            return;
+        }
+
+        Console.WriteLine($"✅ {result.Value.Message}");
     }
 
     private static async Task ListEntries()
     {
-        var start = DateTime.UtcNow.Date;
-        var end = start.AddDays(1).AddTicks(-1);
+        var useCase = new GetEntriesOfTodayUseCase(_repo);
+        var request = new GetEntriesOfTodayRequest(_guildId, _userId);
 
-        var entries = await _repo.GetEntriesByUserAndGuildAndDateRangeAsync(_guildId, _userId, start, end);
+        var result = await useCase.ExecuteAsync(request);
 
-        Console.WriteLine($"\nEntradas para {_userName} em {start:yyyy-MM-dd}");
-        foreach (var e in entries.OrderBy(e => e.Timestamp))
+        if (result.IsFailure)
         {
-            Console.WriteLine($"[{e.Timestamp:HH:mm:ss}] {e.Type}");
+            Console.WriteLine($"❌ {result.Error}");
+            return;
         }
-    }
 
-    private static TimeEntry CreateBasicEntry()
-    {
-        return new TimeEntry
-        {
-            GuildId = _guildId,
-            UserId = _userId,
-            UserName = _userName
-        };
+        Console.WriteLine($"✅ {result.Value.Message}");
     }
 }

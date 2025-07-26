@@ -1,5 +1,6 @@
 ﻿using DiscordTimeTracker.Application.Common;
 using DiscordTimeTracker.Application.UseCases.ClockIn;
+using DiscordTimeTracker.Application.Validators;
 using DiscordTimeTracker.Domain.Entities;
 using DiscordTimeTracker.Domain.Enums;
 using DiscordTimeTracker.Domain.Repositories;
@@ -18,7 +19,7 @@ public class ClockOutUseCase
     public async Task<Result<ClockOutResponse>> ExecuteAsync(ClockOutRequest request)
     {
         var lastEntry = await _repository.GetLastEntryByUserAsync(request.GuildId, request.UserId);
-        if (lastEntry?.Type == TimeEntryType.ClockOut)
+        if (!TimeEntryValidator.CanClockOut(lastEntry))
             return Result<ClockOutResponse>.Fail($":head_shaking_horizontally: You are already Out");
 
         var entry = new TimeEntry

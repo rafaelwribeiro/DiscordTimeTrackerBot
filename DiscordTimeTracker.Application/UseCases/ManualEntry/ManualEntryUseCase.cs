@@ -1,4 +1,5 @@
 ﻿using DiscordTimeTracker.Application.Common;
+using DiscordTimeTracker.Application.Validators;
 using DiscordTimeTracker.Domain.Entities;
 using DiscordTimeTracker.Domain.Enums;
 using DiscordTimeTracker.Domain.Repositories;
@@ -17,7 +18,7 @@ public class ManualEntryUseCase
     public async Task<Result<ManualEntryResponse>> ExecuteAsync(ManualEntryRequest request)
     {
         var lastEntry = await _repository.GetLastEntryByUserAsync(request.GuildId, request.UserId);
-        if (lastEntry?.Type == request.Type)
+        if (!TimeEntryValidator.CanManualEntry(lastEntry, request.Type))
             return Result<ManualEntryResponse>.Fail($":head_shaking_horizontally: You are already {(request.Type == TimeEntryType.ClockIn ? "In" : "Out")}");
 
         var entry = new TimeEntry
