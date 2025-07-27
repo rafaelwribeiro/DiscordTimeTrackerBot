@@ -8,6 +8,8 @@ using DiscordTimeTracker.Application.UseCases.ClockOut;
 using DiscordTimeTracker.Application.UseCases.ManualEntry;
 using DiscordTimeTracker.Infrastructure.Mongo;
 using DiscordTimeTracker.Application.UseCases.GetEntriesOfToday;
+using DiscordTimeTracker.Bot.Handlers;
+using DiscordTimeTracker.Bot;
 
 internal class Program
 {
@@ -27,6 +29,13 @@ internal class Program
         services.AddTransient<ManualEntryUseCase>();
         services.AddTransient<GetEntriesOfTodayUseCase>();
         services.AddSingleton<DiscordSocketClient>();
+
+        services.AddTransient<ISlashCommandHandler, ClockInCommandHandler>();
+        services.AddTransient<ISlashCommandHandler, ClockOutCommandHandler>();
+        services.AddTransient<ISlashCommandHandler, ManualEntryCommandHandler>();
+        services.AddTransient<ISlashCommandHandler, ListEntriesCommandHandler>();
+        services.AddSingleton<SlashCommandDispatcher>();
+
 
         var provider = services.BuildServiceProvider();
         var client = provider.GetRequiredService<DiscordSocketClient>();
@@ -68,6 +77,20 @@ internal class Program
         };
 
         client.SlashCommandExecuted += async command =>
+        {
+            var dispatcher = provider.GetRequiredService<SlashCommandDispatcher>();
+            try
+            {
+                await dispatcher.DispatchAsync(command);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error handling command {command.CommandName}: {ex.Message}");
+                try { await command.RespondAsync(":x: Error executing command.", ephemeral: true); } catch { }
+            }
+        };
+
+        /*client.SlashCommandExecuted += async command =>
         {
             try
             {
@@ -120,7 +143,7 @@ internal class Program
                 Console.WriteLine($"Error handling command {command.CommandName}: {ex.Message}");
                 try { await command.RespondAsync(":x: Error executing command.", ephemeral: true); } catch { }
             }
-        };
+        };*/
 
         await client.LoginAsync(TokenType.Bot, token);
         await client.StartAsync();
