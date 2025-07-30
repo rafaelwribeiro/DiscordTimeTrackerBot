@@ -1,11 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <ProjectReference Include="..\DiscordTimeTracker.Application\DiscordTimeTracker.Application.csproj" />
     <ProjectReference Include="..\DiscordTimeTracker.Domain\DiscordTimeTracker.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="MongoDB.Driver" Version="3.4.1" />
+    <PackageReference Include="QuestPDF" Version="2025.7.0" />
   </ItemGroup>
 
   <PropertyGroup>

@@ -1,12 +1,18 @@
-﻿using DiscordTimeTracker.Application.UseCases.ClockIn;
+﻿using DiscordTimeTracker.Application.Interfaces;
+using DiscordTimeTracker.Application.UseCases.ClockIn;
 using DiscordTimeTracker.Application.UseCases.ClockOut;
+using DiscordTimeTracker.Application.UseCases.GenerateMonthlyReport;
 using DiscordTimeTracker.Application.UseCases.GetEntriesOfToday;
 using DiscordTimeTracker.Application.UseCases.ManualEntry;
 using DiscordTimeTracker.Domain.Entities;
 using DiscordTimeTracker.Domain.Enums;
 using DiscordTimeTracker.Infrastructure.Mongo;
+using DiscordTimeTracker.Infrastructure.Reporting;
 using DotNetEnv;
+using MongoDB.Driver;
+using QuestPDF.Infrastructure;
 using System.Globalization;
+using System.Net.NetworkInformation;
 
 static class Program
 {
@@ -14,10 +20,13 @@ static class Program
     private static string _guildId;
     private static string _userId;
     private static string _userName;
+    private static IMonthlyReportPdfGenerator _monthlyReport;
 
     static async Task Main(string[] args)
     {
         Console.OutputEncoding = System.Text.Encoding.UTF8;
+
+        QuestPDF.Settings.License = LicenseType.Community;
 
         // Carrega variáveis do .env
         Env.Load();
@@ -28,6 +37,8 @@ static class Program
 
         var connectionString = Environment.GetEnvironmentVariable("MONGO_CONNECTION")!;
         var databaseName = Environment.GetEnvironmentVariable("MONGO_DATABASE")!;
+
+        _monthlyReport = new QuestPdfMonthlyReportGenerator();
 
         _repo = new MongoTimeEntryRepository(connectionString, databaseName);
 
@@ -40,6 +51,7 @@ static class Program
             Console.WriteLine("2 - Clock Out");
             Console.WriteLine("3 - Manual Entry");
             Console.WriteLine("4 - List Entries");
+            Console.WriteLine("5 - Monthly Report");
             Console.WriteLine("0 - Exit");
 
             Console.Write("Option: ");
@@ -58,6 +70,9 @@ static class Program
                     break;
                 case "4":
                     await ListEntries();
+                    break;
+                case "5":
+                    await MonthlyReport();
                     break;
                 case "0":
                     return;
@@ -154,5 +169,45 @@ static class Program
         }
 
         Console.WriteLine($"✅ {result.Value.Message}");
+    }
+
+    private static async Task MonthlyReport()
+    {
+        Console.Write("Enter the month: ");
+        var typeMonth = Console.ReadLine();
+        if(!int.TryParse(typeMonth, out var month))
+        {
+            Console.WriteLine("Invalid month format.");
+            return;
+        }
+
+        Console.Write("Enter the year: ");
+        var typeYear = Console.ReadLine();
+        if (!int.TryParse(typeYear, out var year))
+        {
+            Console.WriteLine("Invalid year format.");
+            return;
+        }
+
+        var useCase = new GenerateMonthlyReportUseCase(_repo, _monthlyReport);
+        var request = new GenerateMonthlyReportRequest(_guildId, _userId, _userName, year, month);
+
+        var result = await useCase.ExecuteAsync(request);
+
+
+        if (result.IsFailure)
+        {
+            Console.WriteLine($"❌ {result.Error}");
+            return;
+        }
+
+        var report = result.Value!;
+        var fileName = $"report_{year}_{month:D2}.pdf";
+
+        // Create in-memory PDF stream
+        var stream = new MemoryStream(report.FileBytes);
+        stream.Position = 0;
+
+        await File.WriteAllBytesAsync($"./{fileName}", stream.ToArray());
     }
 }

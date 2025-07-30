@@ -1,13 +1,15 @@
-﻿namespace DiscordTimeTracker.Application.DTOs;
+﻿using DiscordTimeTracker.Domain.Enums;
+
+namespace DiscordTimeTracker.Application.DTOs;
 
 public class TimeEntryDto
 {
-    public DateTime Timestamp { get; set; }
-    public string Type { get; set; } = string.Empty;
-
-    public TimeEntryDto(DateTime timestamp, string type)
+    public TimeEntryDto(DateTime timestamp, TimeEntryType type)
     {
         Timestamp = timestamp;
         Type = type;
     }
+
+    public DateTime Timestamp { get; set; }
+    public TimeEntryType Type { get; set; }
 }

@@ -1,78 +1,59 @@
 ﻿using DiscordTimeTracker.Application.Common;
 using DiscordTimeTracker.Application.DTOs;
+using DiscordTimeTracker.Application.Interfaces;
 using DiscordTimeTracker.Domain.Repositories;
-using DiscordTimeTracker.Domain.Entities;
-using DiscordTimeTracker.Domain.Enums;
 
 namespace DiscordTimeTracker.Application.UseCases.GenerateMonthlyReport;
 
 public class GenerateMonthlyReportUseCase
 {
     private readonly ITimeEntryRepository _repository;
+    private readonly IMonthlyReportPdfGenerator _pdfGenerator;
 
-    public GenerateMonthlyReportUseCase(ITimeEntryRepository repository)
+    public GenerateMonthlyReportUseCase(ITimeEntryRepository repository, IMonthlyReportPdfGenerator pdfGenerator)
     {
         _repository = repository;
+        _pdfGenerator = pdfGenerator;
     }
 
     public async Task<Result<GenerateMonthlyReportResponse>> ExecuteAsync(GenerateMonthlyReportRequest request)
     {
-        if (request.Month < 1 || request.Month > 12)
-            return Result<GenerateMonthlyReportResponse>.Fail("Invalid month.");
+        var start = new DateTime(request.Year, request.Month, 1);
+        var end = start.AddMonths(1).AddTicks(-1);
 
-        if (request.Year < 2000 || request.Year > DateTime.UtcNow.Year)
-            return Result<GenerateMonthlyReportResponse>.Fail("Invalid year.");
-
-        var entries = await _repository.GetEntriesByUserAndGuildAndMonthAsync(
+        var entries = await _repository.GetEntriesByUserAndGuildAndDateRangeAsync(
             request.GuildId,
             request.UserId,
-            request.Year,
-            request.Month
+            start,
+            end
         );
 
-        if (entries == null || entries.Count == 0)
-            return Result<GenerateMonthlyReportResponse>.Ok(new GenerateMonthlyReportResponse(request.UserName, request.Month, request.Year, []));
+        if (entries.Count == 0)
+            return Result<GenerateMonthlyReportResponse>.Fail("No entries found for this month.");
 
-        var grouped = entries
-            .GroupBy(e => DateOnly.FromDateTime(e.Timestamp.ToLocalTime()))
-            .Select(group =>
-            {
-                var ordered = group.OrderBy(e => e.Timestamp).ToList();
-                var worked = CalculateWorkedTime(ordered);
-                var entryDtos = ordered.Select(e => new TimeEntryDto(e.Timestamp.ToLocalTime(), e.Type.ToString())).ToList();
-
-                return new GenerateMonthlyReportResponse.DailySummary(
-                    group.Key,
-                    worked,
-                    entryDtos
-                );
-            })
-            .OrderBy(s => s.Date)
+        var entryDtos = entries
+            .OrderBy(e => e.Timestamp)
+            .Select(e => new TimeEntryDto(e.Timestamp, e.Type))
             .ToList();
 
-        var response = new GenerateMonthlyReportResponse(
-            request.UserName,
-            request.Month,
-            request.Year,
-            grouped
-        );
-
-        return Result<GenerateMonthlyReportResponse>.Ok(response);
-    }
-
-    private static TimeSpan CalculateWorkedTime(List<TimeEntry> entries)
-    {
-        TimeSpan total = TimeSpan.Zero;
-        for (int i = 0; i < entries.Count - 1; i += 2)
+        TimeSpan totalWorked = TimeSpan.Zero;
+        for (int i = 0; i < entryDtos.Count - 1; i++)
         {
-            var start = entries[i];
-            var end = entries[i + 1];
-
-            if (start.Type == TimeEntryType.ClockIn && end.Type == TimeEntryType.ClockOut)
+            if (entryDtos[i].Type == Domain.Enums.TimeEntryType.ClockIn &&
+                entryDtos[i + 1].Type == Domain.Enums.TimeEntryType.ClockOut)
             {
-                total += end.Timestamp - start.Timestamp;
+                totalWorked += entryDtos[i + 1].Timestamp - entryDtos[i].Timestamp;
+                i++; // skip the next entry
             }
         }
-        return total;
+
+        var pdfBytes = _pdfGenerator.Generate(request.UserName, request.Year, request.Month, entryDtos, totalWorked);
+
+        return Result<GenerateMonthlyReportResponse>.Ok(new GenerateMonthlyReportResponse
+        {
+            FileName = $"report_{request.Year}_{request.Month:D2}.pdf",
+            FileBytes = pdfBytes,
+            EntryCount = entryDtos.Count
+        });
     }
 }

@@ -2,24 +2,20 @@
 
 public class GenerateMonthlyReportRequest
 {
-    public string GuildId { get; set; } = null!;
-    public string UserId { get; set; } = null!;
-    public string UserName { get; set; } = null!;
-    public int Month { get; set; }
-    public int Year { get; set; }
+    public string GuildId { get; init; }
+    public string UserId { get; init; }
+    public string UserName { get; set; }
+    public int Year { get; init; }
+    public int Month { get; init; }
 
-    public GenerateMonthlyReportRequest(
-        string guildId,
-        string userId,
-        string userName,
-        int month,
-        int year)
+    public GenerateMonthlyReportRequest(string guildId, string userId, string userName, int year, int month)
     {
         GuildId = guildId;
         UserId = userId;
         UserName = userName;
-        Month = month;
         Year = year;
+        Month = month;
     }
 }
+
 

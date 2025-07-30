@@ -1,7 +1,5 @@
 ﻿using Discord;
 using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
-using DiscordTimeTracker.Bot.Handlers;
 
 namespace DiscordTimeTracker.Bot;
 
@@ -46,7 +44,13 @@ public class DiscordBot
 
                 new SlashCommandBuilder()
                     .WithName("entries")
-                    .WithDescription("List today's entries").Build()
+                    .WithDescription("List today's entries").Build(),
+
+                new SlashCommandBuilder()
+                    .WithName("monthlyreport")
+                    .WithDescription("Generate a monthly report as PDF")
+                    .AddOption("month", ApplicationCommandOptionType.Integer, "Month number (1-12)", isRequired: true)
+                    .AddOption("year", ApplicationCommandOptionType.Integer, "Year (e.g. 2025)", isRequired: true).Build()
             };
 
             await _client.BulkOverwriteGlobalApplicationCommandsAsync(commands);
