@@ -51,6 +51,8 @@ public class MongoTimeEntryRepository : ITimeEntryRepository
     {
         Console.WriteLine($"Start: {start:O}");
         Console.WriteLine($"End: {end:O}");
+        Console.WriteLine($"guildId: {guildId}");
+        Console.WriteLine($"userId: {userId}");
         var result = await _collection
         .Find(x => x.GuildId == guildId
                    && x.UserId == userId

@@ -57,30 +57,44 @@ static class Program
             Console.Write("Option: ");
             var input = Console.ReadLine();
 
-            switch (input)
+            try
             {
-                case "1":
-                    await ClockIn();
-                    break;
-                case "2":
-                    await ClockOut();
-                    break;
-                case "3":
-                    await ManualEntry();
-                    break;
-                case "4":
-                    await ListEntries();
-                    break;
-                case "5":
-                    await MonthlyReport();
-                    break;
-                case "0":
-                    return;
-                default:
-                    Console.WriteLine("Opção inválida.");
-                    break;
+                switch (input)
+                {
+                    case "1":
+                        await ClockIn();
+                        break;
+                    case "2":
+                        await ClockOut();
+                        break;
+                    case "3":
+                        await ManualEntry();
+                        break;
+                    case "4":
+                        await ListEntries();
+                        break;
+                    case "5":
+                        await MonthlyReport();
+                        break;
+                    case "0":
+                        return;
+                    default:
+                        Console.WriteLine("Opção inválida.");
+                        break;
+                }
+            } catch(Exception ex)
+            {
+                PrintExceptionMessage(ex);
             }
         }
+    }
+
+    private static void PrintExceptionMessage(Exception ex)
+    {
+        var currColor = Console.ForegroundColor;
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine($"Error: {ex.Message}");
+        Console.ForegroundColor = currColor;
     }
 
     private static async Task ClockIn()
@@ -202,7 +216,7 @@ static class Program
         }
 
         var report = result.Value!;
-        var fileName = $"report_{year}_{month:D2}.pdf";
+        var fileName = report?.FileName ?? $"report_{year}_{month:D2}.pdf";
 
         // Create in-memory PDF stream
         var stream = new MemoryStream(report.FileBytes);
