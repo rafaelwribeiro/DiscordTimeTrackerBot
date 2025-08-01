@@ -62,9 +62,9 @@ public class QuestPdfMonthlyReportGenerator : IMonthlyReportPdfGenerator
 
                             table.Header(header =>
                             {
-                                header.Cell().Text("Entrada").SemiBold();
-                                header.Cell().Text("Saída").SemiBold();
-                                header.Cell().Text("Saldo").SemiBold();
+                                header.Cell().Text("In").SemiBold();
+                                header.Cell().Text("Out").SemiBold();
+                                header.Cell().Text("Balance").SemiBold();
                             });
 
                             var punches = group.OrderBy(e => e.Timestamp).ToList();

@@ -49,12 +49,8 @@ public class MongoTimeEntryRepository : ITimeEntryRepository
 
     public async Task<IReadOnlyList<TimeEntry>> GetEntriesByUserAndGuildAndDateRangeAsync(string guildId, string userId, DateTime start, DateTime end)
     {
-        Console.WriteLine($"Start: {start:O}");
-        Console.WriteLine($"End: {end:O}");
-        Console.WriteLine($"guildId: {guildId}");
-        Console.WriteLine($"userId: {userId}");
         var result = await _collection
-        .Find(x => x.GuildId == guildId
+            .Find(x => x.GuildId == guildId
                    && x.UserId == userId
                    && x.Timestamp >= start
                    && x.Timestamp <= end)

@@ -2,6 +2,7 @@
 using DiscordTimeTracker.Application.DTOs;
 using DiscordTimeTracker.Application.Interfaces;
 using DiscordTimeTracker.Domain.Repositories;
+using DiscordTimeTracker.Application.Extensions;
 
 namespace DiscordTimeTracker.Application.UseCases.GenerateMonthlyReport;
 
@@ -49,9 +50,11 @@ public class GenerateMonthlyReportUseCase
 
         var pdfBytes = _pdfGenerator.Generate(request.UserName, request.Year, request.Month, entryDtos, totalWorked);
 
+        var userName = request.UserName.NormalizeFileName();
+
         return Result<GenerateMonthlyReportResponse>.Ok(new GenerateMonthlyReportResponse
         {
-            FileName = $"report_{request.Year}_{request.Month:D2}.pdf",
+            FileName = $"report_{request.Year}_{request.Month:D2}_{userName}.pdf",
             FileBytes = pdfBytes,
             EntryCount = entryDtos.Count
         });

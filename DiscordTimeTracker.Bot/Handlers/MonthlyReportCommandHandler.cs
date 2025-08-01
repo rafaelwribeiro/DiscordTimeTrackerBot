@@ -19,9 +19,7 @@ public class MonthlyReportCommandHandler : ISlashCommandHandler
     {
         var userId = command.User.Id.ToString();
         var guildId = (command.GuildId ?? 0).ToString();
-        var userName = command.User.Username;
-
-        var globalName = command.User.GlobalName;
+        string userName = GetUserName(command);
 
         var month = Convert.ToInt32(command.Data.Options.FirstOrDefault(x => x.Name == "month")?.Value);
         var year = Convert.ToInt32(command.Data.Options.FirstOrDefault(x => x.Name == "year")?.Value);
@@ -35,7 +33,8 @@ public class MonthlyReportCommandHandler : ISlashCommandHandler
         }
 
         var report = result.Value!;
-        var fileName = $"report_{userName}_{year}_{month:D2}.pdf";
+
+        var fileName = report.FileName;
 
         // Create in-memory PDF stream
         var stream = new MemoryStream(report.FileBytes);
@@ -44,5 +43,13 @@ public class MonthlyReportCommandHandler : ISlashCommandHandler
         var attachment = new FileAttachment(stream, fileName);
 
         await command.RespondWithFileAsync(attachment, text: $"📄 Monthly Report for **{month:D2}/{year}**", ephemeral: true);
+    }
+
+    private static string GetUserName(SocketSlashCommand command)
+    {
+        var user = command.User as SocketGuildUser;
+        var displayName = user?.Nickname ?? user?.Username ?? command.User.Username;
+        
+        return displayName;
     }
 }
